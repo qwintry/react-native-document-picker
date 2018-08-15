@@ -85,7 +85,16 @@ RCT_EXPORT_METHOD(pick:(NSDictionary *)options
     NSFileCoordinator *coordinator = [[NSFileCoordinator alloc] init];
     __block NSError *fileError;
     
-    [coordinator coordinateReadingItemAtURL:url options:NSFileCoordinatorReadingResolvesSymbolicLink error:&fileError byAccessor:^(NSURL *newURL) {
+    NSString *tempPath = NSTemporaryDirectory();
+    // add random prefix
+    NSNumber *myDoubleNumber = [NSNumber numberWithDouble:[[NSDate date] timeIntervalSince1970]];
+    NSString *tempFile = [tempPath stringByAppendingPathComponent: [NSString stringWithFormat:@"%@_%@", [myDoubleNumber stringValue], [url lastPathComponent]]];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    [fileManager copyItemAtPath:url.path toPath:tempFile error:&fileError];
+    
+    NSURL *urlbinary = [[NSURL alloc] initWithString:tempFile];
+    
+    [coordinator coordinateReadingItemAtURL:urlbinary options:NSFileCoordinatorReadingResolvesSymbolicLink error:&fileError byAccessor:^(NSURL *newURL) {
         
         if (!fileError) {
             [result setValue:newURL.absoluteString forKey:FIELD_URI];
